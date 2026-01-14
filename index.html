@@ -203,11 +203,7 @@
                 <!-- 扫码/上传图片 -->
                 <div class="card">
                     <h3>📷 扫码激活</h3>
-                    <div class="scan-methods">
-                        <button class="btn btn-secondary scan-method-btn" id="startScanBtn" onclick="startScanner()">📷 启动摄像头</button>
-                        <button class="btn btn-secondary scan-method-btn" onclick="document.getElementById('qrImageInput').click()">🖼️ 上传二维码图片</button>
-                    </div>
-                    <input type="file" id="qrImageInput" accept="image/*" onchange="scanFromImage(this)" style="display:none;">
+                    <button class="btn btn-secondary btn-full" id="startScanBtn" onclick="startScanner()">📷 启动摄像头扫码</button>
                     <div id="reader"></div>
                     <button class="btn btn-secondary btn-full" id="stopScanBtn" onclick="stopScanner()" style="display:none;">关闭摄像头</button>
                 </div>
