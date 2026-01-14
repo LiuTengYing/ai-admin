@@ -103,13 +103,6 @@
             padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; z-index: 100;
         }
         .logout-btn:hover { background: rgba(255,255,255,0.2); }
-        .manual-input { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .manual-input summary { cursor: pointer; color: #888; font-size: 14px; }
-        .manual-input .input-row { display: flex; gap: 10px; margin-top: 12px; }
-        .manual-input input {
-            flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; font-size: 14px;
-        }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
         .data-table th, .data-table td {
             padding: 12px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -117,7 +110,7 @@
         .data-table th { color: #888; font-weight: 500; white-space: nowrap; }
         .data-table td { color: #fff; }
         .data-table tr:hover { background: rgba(255,255,255,0.05); }
-        .device-code-cell { font-family: monospace; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+        .device-code-cell { font-family: monospace; font-size: 12px; word-break: break-all; }
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
         .status-active { background: rgba(0,255,136,0.2); color: #00ff88; }
         .status-expired { background: rgba(255,107,107,0.2); color: #ff6b6b; }
@@ -130,10 +123,24 @@
         .card-header h3 { margin-bottom: 0; }
         .empty-state { text-align: center; padding: 40px; color: #888; }
         .loading { text-align: center; padding: 40px; color: #888; }
+        .scan-methods { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .scan-method-btn { flex: 1; min-width: 120px; }
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px;
+            padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+        .upload-area:hover { border-color: #00d9ff; background: rgba(0,217,255,0.05); }
+        .upload-area input { display: none; }
+        .upload-area .icon { font-size: 48px; margin-bottom: 10px; }
+        .upload-area p { color: #888; font-size: 14px; }
+        .manual-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .manual-section h4 { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .input-row input { flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; }
         @media (max-width: 600px) {
             .data-table { font-size: 12px; }
             .data-table th, .data-table td { padding: 8px 4px; }
-            .device-code-cell { max-width: 80px; }
         }
     </style>
 </head>
@@ -160,7 +167,7 @@
             
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('devices')">📱 设备列表</div>
-                <div class="tab" onclick="switchTab('scan')">📷 扫码激活</div>
+                <div class="tab" onclick="switchTab('activate')">� 激活设备</div>
                 <div class="tab" onclick="switchTab('codes')">🎫 生成激活码</div>
             </div>
             
@@ -191,34 +198,49 @@
                 </div>
             </div>
             
-            <!-- 扫码激活 -->
-            <div class="tab-content" id="tab-scan">
+            <!-- 激活设备 -->
+            <div class="tab-content" id="tab-activate">
+                <!-- 扫码/上传图片 -->
                 <div class="card">
-                    <h3>📷 扫码激活设备</h3>
-                    <div id="reader"></div>
-                    <button class="btn btn-secondary btn-full" id="startScanBtn" onclick="startScanner()">启动摄像头</button>
-                    <button class="btn btn-secondary btn-full" id="stopScanBtn" onclick="stopScanner()" style="display:none;">关闭摄像头</button>
-                    
-                    <div class="scan-result" id="scanResult">
-                        <div>设备码：</div>
-                        <div class="device-code" id="scannedDeviceCode"></div>
-                        <div style="margin-top:16px;">选择激活时长：</div>
-                        <div class="days-selector" id="scanDaysSelector">
-                            <div class="days-option" data-days="1" onclick="selectScanDays(this)"><div class="num">1</div><div class="label">天</div></div>
-                            <div class="days-option" data-days="3" onclick="selectScanDays(this)"><div class="num">3</div><div class="label">天</div></div>
-                            <div class="days-option" data-days="7" onclick="selectScanDays(this)"><div class="num">7</div><div class="label">天</div></div>
-                            <div class="days-option selected" data-days="0" onclick="selectScanDays(this)"><div class="num">∞</div><div class="label">永久</div></div>
-                        </div>
-                        <button class="btn btn-primary btn-full" onclick="activateDevice()">立即激活</button>
+                    <h3>📷 扫码激活</h3>
+                    <div class="scan-methods">
+                        <button class="btn btn-secondary scan-method-btn" id="startScanBtn" onclick="startScanner()">📷 启动摄像头</button>
+                        <button class="btn btn-secondary scan-method-btn" onclick="document.getElementById('qrImageInput').click()">🖼️ 上传二维码图片</button>
                     </div>
-                    
-                    <details class="manual-input">
-                        <summary>手动输入设备码</summary>
-                        <div class="input-row">
-                            <input type="text" id="manualDeviceCode" placeholder="输入设备码">
-                            <button class="btn btn-primary" onclick="useManualCode()">确定</button>
-                        </div>
-                    </details>
+                    <input type="file" id="qrImageInput" accept="image/*" onchange="scanFromImage(this)" style="display:none;">
+                    <div id="reader"></div>
+                    <button class="btn btn-secondary btn-full" id="stopScanBtn" onclick="stopScanner()" style="display:none;">关闭摄像头</button>
+                </div>
+                
+                <!-- 手动输入设备码 -->
+                <div class="card">
+                    <h3>⌨️ 手动输入设备码激活</h3>
+                    <div class="input-row">
+                        <input type="text" id="manualDeviceCode" placeholder="输入完整设备码">
+                    </div>
+                    <div style="margin-top:16px;">选择激活时长：</div>
+                    <div class="days-selector" id="manualDaysSelector">
+                        <div class="days-option" data-days="1" onclick="selectManualDays(this)"><div class="num">1</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="3" onclick="selectManualDays(this)"><div class="num">3</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="7" onclick="selectManualDays(this)"><div class="num">7</div><div class="label">天</div></div>
+                        <div class="days-option selected" data-days="0" onclick="selectManualDays(this)"><div class="num">∞</div><div class="label">永久</div></div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="activateManual()">立即激活</button>
+                </div>
+                
+                <!-- 扫码结果 -->
+                <div class="card scan-result" id="scanResult">
+                    <h3>✅ 扫码成功</h3>
+                    <div>设备码：</div>
+                    <div class="device-code" id="scannedDeviceCode"></div>
+                    <div style="margin-top:16px;">选择激活时长：</div>
+                    <div class="days-selector" id="scanDaysSelector">
+                        <div class="days-option" data-days="1" onclick="selectScanDays(this)"><div class="num">1</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="3" onclick="selectScanDays(this)"><div class="num">3</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="7" onclick="selectScanDays(this)"><div class="num">7</div><div class="label">天</div></div>
+                        <div class="days-option selected" data-days="0" onclick="selectScanDays(this)"><div class="num">∞</div><div class="label">永久</div></div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="activateScanned()">立即激活</button>
                 </div>
             </div>
             
@@ -255,11 +277,11 @@
     let html5QrCode = null;
     let isScanning = false;
     let scanSelectedDays = 0;
+    let manualSelectedDays = 0;
     let generateSelectedDays = 0;
     let scannedDevice = null;
     let generatedCodes = [];
     
-    // 登录
     function login() {
         const password = document.getElementById('adminPassword').value;
         if (password === ADMIN_TOKEN) {
@@ -273,7 +295,6 @@
         }
     }
     
-    // 退出
     function logout() {
         localStorage.removeItem('ai_admin_logged');
         document.getElementById('loginSection').style.display = 'block';
@@ -282,7 +303,6 @@
         stopScanner();
     }
     
-    // 检查登录状态
     function checkLogin() {
         if (localStorage.getItem('ai_admin_logged') === 'true') {
             document.getElementById('loginSection').style.display = 'none';
@@ -291,16 +311,15 @@
         }
     }
     
-    // 切换标签
     function switchTab(tabName) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
         document.getElementById('tab-' + tabName).classList.add('active');
         if (tabName === 'devices') loadDevices();
+        if (tabName !== 'activate') stopScanner();
     }
     
-    // 加载设备列表
     async function loadDevices() {
         document.getElementById('devicesLoading').style.display = 'block';
         document.getElementById('devicesEmpty').style.display = 'none';
@@ -337,7 +356,7 @@
                     const daysText = d.days === 0 ? '永久' : d.days + '天';
                     
                     return `<tr>
-                        <td class="device-code-cell" title="${d.device_code}">${d.device_code.substring(0,12)}...</td>
+                        <td class="device-code-cell">${d.device_code}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td>${daysText}</td>
                         <td>${activatedAt}</td>
@@ -357,7 +376,6 @@
         }
     }
     
-    // 删除设备
     async function deleteDevice(deviceCode) {
         if (!confirm('确定要删除该设备的激活记录吗？')) return;
         
@@ -383,7 +401,6 @@
         }
     }
     
-    // 启动扫码
     function startScanner() {
         if (html5QrCode === null) {
             html5QrCode = new Html5Qrcode("reader");
@@ -403,7 +420,6 @@
         });
     }
     
-    // 停止扫码
     function stopScanner() {
         if (html5QrCode && isScanning) {
             html5QrCode.stop().then(() => {
@@ -414,7 +430,25 @@
         }
     }
     
-    // 扫码成功
+    // 从图片扫描二维码
+    function scanFromImage(input) {
+        if (input.files && input.files[0]) {
+            if (html5QrCode === null) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            
+            html5QrCode.scanFile(input.files[0], true)
+                .then(decodedText => {
+                    onScanSuccess(decodedText);
+                })
+                .catch(err => {
+                    showToast('无法识别二维码，请确保图片清晰', 'error');
+                });
+            
+            input.value = '';
+        }
+    }
+    
     function onScanSuccess(decodedText) {
         const match = decodedText.match(/device=([a-zA-Z0-9]+)/);
         if (match) {
@@ -428,40 +462,45 @@
         }
     }
     
-    // 手动输入设备码
-    function useManualCode() {
-        const code = document.getElementById('manualDeviceCode').value.trim();
-        if (code) {
-            scannedDevice = code;
-            document.getElementById('scannedDeviceCode').textContent = scannedDevice;
-            document.getElementById('scanResult').classList.add('show');
-            showToast('设备码已设置', 'success');
-        } else {
-            showToast('请输入设备码', 'error');
-        }
-    }
-    
-    // 选择扫码激活天数
     function selectScanDays(el) {
         document.querySelectorAll('#scanDaysSelector .days-option').forEach(opt => opt.classList.remove('selected'));
         el.classList.add('selected');
         scanSelectedDays = parseInt(el.dataset.days);
     }
     
-    // 选择生成激活码天数
+    function selectManualDays(el) {
+        document.querySelectorAll('#manualDaysSelector .days-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        manualSelectedDays = parseInt(el.dataset.days);
+    }
+    
     function selectGenerateDays(el) {
         document.querySelectorAll('#generateDaysSelector .days-option').forEach(opt => opt.classList.remove('selected'));
         el.classList.add('selected');
         generateSelectedDays = parseInt(el.dataset.days);
     }
     
-    // 激活设备
-    async function activateDevice() {
+    async function activateScanned() {
         if (!scannedDevice) {
-            showToast('请先扫码或输入设备码', 'error');
+            showToast('请先扫码', 'error');
             return;
         }
-        
+        await doActivate(scannedDevice, scanSelectedDays);
+        document.getElementById('scanResult').classList.remove('show');
+        scannedDevice = null;
+    }
+    
+    async function activateManual() {
+        const deviceCode = document.getElementById('manualDeviceCode').value.trim();
+        if (!deviceCode) {
+            showToast('请输入设备码', 'error');
+            return;
+        }
+        await doActivate(deviceCode, manualSelectedDays);
+        document.getElementById('manualDeviceCode').value = '';
+    }
+    
+    async function doActivate(deviceCode, days) {
         try {
             const response = await fetch(`${API_BASE}/activate`, {
                 method: 'POST',
@@ -469,18 +508,13 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${ADMIN_TOKEN}`
                 },
-                body: JSON.stringify({
-                    device_code: scannedDevice,
-                    days: scanSelectedDays
-                })
+                body: JSON.stringify({ device_code: deviceCode, days: days })
             });
             const data = await response.json();
             
             if (data.success) {
-                const daysText = scanSelectedDays === 0 ? '永久' : scanSelectedDays + '天';
+                const daysText = days === 0 ? '永久' : days + '天';
                 showToast(`激活成功: ${daysText}`, 'success');
-                document.getElementById('scanResult').classList.remove('show');
-                scannedDevice = null;
             } else {
                 showToast(data.error || '激活失败', 'error');
             }
@@ -489,7 +523,6 @@
         }
     }
     
-    // 生成激活码
     async function generateCodes() {
         const count = parseInt(document.getElementById('codeCount').value) || 5;
         if (count < 1 || count > 100) {
@@ -504,10 +537,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${ADMIN_TOKEN}`
                 },
-                body: JSON.stringify({
-                    days: generateSelectedDays,
-                    count: count
-                })
+                body: JSON.stringify({ days: generateSelectedDays, count: count })
             });
             const data = await response.json();
             
@@ -526,7 +556,6 @@
         }
     }
     
-    // 复制激活码
     function copyCodes() {
         if (generatedCodes.length > 0) {
             const text = generatedCodes.join('\n');
@@ -544,7 +573,6 @@
         }
     }
     
-    // Toast提示
     function showToast(message, type) {
         const toast = document.getElementById('toast');
         toast.textContent = message;
@@ -552,12 +580,10 @@
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
     
-    // 回车登录
     document.getElementById('adminPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') login();
     });
     
-    // 页面加载
     checkLogin();
 </script>
 </body>
