@@ -1,456 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Assistant Admin</title>
+    <title>AI助手管理后台</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             color: #fff;
         }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            padding: 30px 0;
-        }
-        
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 30px 0; }
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
+            font-size: 24px; margin-bottom: 8px;
             background: linear-gradient(90deg, #00d9ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        
-        .header p {
-            color: #888;
-            font-size: 14px;
-        }
-        
-        /* 登录页面 */
+        .header p { color: #888; font-size: 14px; }
         .login-section {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05); border-radius: 16px;
+            padding: 30px; margin-bottom: 20px; max-width: 400px; margin: 0 auto;
         }
-        
-        .login-section h2 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #aaa;
-            font-size: 14px;
-        }
-        
+        .login-section h2 { font-size: 18px; margin-bottom: 20px; text-align: center; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
         .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
+            width: 100%; padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+            background: rgba(0,0,0,0.3); color: #fff; font-size: 16px; outline: none;
         }
-        
-        .input-group input:focus {
-            border-color: #00d9ff;
-        }
-        
+        .input-group input:focus { border-color: #00d9ff; }
         .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 12px 20px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
-        
-        .btn-primary {
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            color: #000;
+        .btn-primary { background: linear-gradient(90deg, #00d9ff, #00ff88); color: #000; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,217,255,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .btn-danger { background: #ff4757; color: #fff; }
+        .btn-danger:hover { background: #ff6b7a; }
+        .btn-full { width: 100%; }
+        .main-panel { display: none; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab {
+            padding: 12px 24px; background: rgba(255,255,255,0.05); border-radius: 10px;
+            cursor: pointer; transition: all 0.3s; border: 2px solid transparent;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,217,255,0.3);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            margin-top: 10px;
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        /* 主面板 */
-        .main-panel {
-            display: none;
-        }
-        
+        .tab:hover { background: rgba(255,255,255,0.1); }
+        .tab.active { border-color: #00d9ff; background: rgba(0,217,255,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05); border-radius: 16px;
+            padding: 24px; margin-bottom: 20px;
         }
-        
-        .card h3 {
-            font-size: 16px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .card h3 .icon {
-            font-size: 20px;
-        }
-        
-        /* 扫码区域 */
-        #reader {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 16px;
-        }
-        
-        #reader video {
-            border-radius: 12px;
-        }
-        
+        .card h3 { font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        #reader { width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .scan-result {
-            background: rgba(0,255,136,0.1);
-            border: 1px solid rgba(0,255,136,0.3);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 16px;
-            display: none;
+            background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3);
+            border-radius: 10px; padding: 16px; margin-top: 16px; display: none;
         }
-        
-        .scan-result.show {
-            display: block;
-        }
-        
-        .scan-result .device-code {
-            font-family: monospace;
-            font-size: 14px;
-            color: #00ff88;
-            word-break: break-all;
-            margin: 8px 0;
-        }
-        
-        /* 激活天数选择 */
-        .days-selector {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 16px 0;
-        }
-        
+        .scan-result.show { display: block; }
+        .scan-result .device-code { font-family: monospace; font-size: 14px; color: #00ff88; word-break: break-all; margin: 8px 0; }
+        .days-selector { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
         .days-option {
-            padding: 12px 8px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 12px 16px; border: 2px solid rgba(255,255,255,0.1); border-radius: 10px;
+            text-align: center; cursor: pointer; transition: all 0.3s; min-width: 70px;
         }
-        
-        .days-option:hover {
-            border-color: rgba(0,217,255,0.5);
-        }
-        
-        .days-option.selected {
-            border-color: #00d9ff;
-            background: rgba(0,217,255,0.1);
-        }
-        
-        .days-option .num {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        
-        .days-option .label {
-            font-size: 12px;
-            color: #888;
-            margin-top: 4px;
-        }
-        
-        /* 生成激活码 */
-        .generate-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
+        .days-option:hover { border-color: rgba(0,217,255,0.5); }
+        .days-option.selected { border-color: #00d9ff; background: rgba(0,217,255,0.1); }
+        .days-option .num { font-size: 18px; font-weight: bold; }
+        .days-option .label { font-size: 12px; color: #888; margin-top: 4px; }
         .codes-output {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 16px;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
+            background: rgba(0,0,0,0.3); border-radius: 10px; padding: 16px;
+            margin-top: 16px; max-height: 200px; overflow-y: auto; display: none;
         }
-        
-        .codes-output.show {
-            display: block;
-        }
-        
-        .codes-output code {
-            display: block;
-            font-family: monospace;
-            font-size: 14px;
-            color: #00ff88;
-            margin: 4px 0;
-        }
-        
-        /* Toast */
+        .codes-output.show { display: block; }
+        .codes-output code { display: block; font-family: monospace; font-size: 14px; color: #00ff88; margin: 4px 0; }
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
+            position: fixed; bottom: 30px; left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: rgba(0,0,0,0.9);
-            color: #fff;
-            padding: 14px 24px;
-            border-radius: 10px;
-            font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 1000;
+            background: rgba(0,0,0,0.9); color: #fff; padding: 14px 24px;
+            border-radius: 10px; font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 1000;
         }
-        
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        .toast.success {
-            border-left: 4px solid #00ff88;
-        }
-        
-        .toast.error {
-            border-left: 4px solid #ff6b6b;
-        }
-        
-        /* 数量输入 */
-        .count-input {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 16px 0;
-        }
-        
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid #00ff88; }
+        .toast.error { border-left: 4px solid #ff6b6b; }
+        .count-input { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
         .count-input input {
-            width: 80px;
-            padding: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
+            width: 80px; padding: 10px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; font-size: 16px; text-align: center;
         }
-        
-        /* 退出按钮 */
         .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; z-index: 100;
         }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        /* 手动输入设备码 */
-        .manual-input {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .manual-input summary {
-            cursor: pointer;
-            color: #888;
-            font-size: 14px;
-        }
-        
-        .manual-input .input-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-        
+        .logout-btn:hover { background: rgba(255,255,255,0.2); }
+        .manual-input { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .manual-input summary { cursor: pointer; color: #888; font-size: 14px; }
+        .manual-input .input-row { display: flex; gap: 10px; margin-top: 12px; }
         .manual-input input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            font-size: 14px;
+            flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; font-size: 14px;
         }
-        
-        .manual-input .btn {
-            width: auto;
-            padding: 12px 20px;
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+        .data-table th, .data-table td {
+            padding: 12px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .data-table th { color: #888; font-weight: 500; white-space: nowrap; }
+        .data-table td { color: #fff; }
+        .data-table tr:hover { background: rgba(255,255,255,0.05); }
+        .device-code-cell { font-family: monospace; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-active { background: rgba(0,255,136,0.2); color: #00ff88; }
+        .status-expired { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .status-permanent { background: rgba(0,217,255,0.2); color: #00d9ff; }
+        .table-actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .table-container { overflow-x: auto; }
+        .refresh-btn { margin-left: auto; }
+        .card-header { display: flex; align-items: center; margin-bottom: 16px; }
+        .card-header h3 { margin-bottom: 0; }
+        .empty-state { text-align: center; padding: 40px; color: #888; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        @media (max-width: 600px) {
+            .data-table { font-size: 12px; }
+            .data-table th, .data-table td { padding: 8px 4px; }
+            .device-code-cell { max-width: 80px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 AI Assistant Admin</h1>
-            <p>Device Activation Management</p>
+            <h1>🤖 AI助手管理后台</h1>
+            <p>设备激活管理系统</p>
         </div>
         
-        <!-- 登录页面 -->
+        <!-- 登录 -->
         <div class="login-section" id="loginSection">
-            <h2>🔐 Admin Login</h2>
+            <h2>🔐 管理员登录</h2>
             <div class="input-group">
-                <label>Admin Password</label>
-                <input type="password" id="adminPassword" placeholder="Enter admin password">
+                <label>管理员密码</label>
+                <input type="password" id="adminPassword" placeholder="请输入密码">
             </div>
-            <button class="btn btn-primary" onclick="login()">Login</button>
+            <button class="btn btn-primary btn-full" onclick="login()">登录</button>
         </div>
         
         <!-- 主面板 -->
         <div class="main-panel" id="mainPanel">
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('devices')">📱 设备列表</div>
+                <div class="tab" onclick="switchTab('scan')">📷 扫码激活</div>
+                <div class="tab" onclick="switchTab('codes')">🎫 生成激活码</div>
+            </div>
+            
+            <!-- 设备列表 -->
+            <div class="tab-content active" id="tab-devices">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📱 已激活设备</h3>
+                        <button class="btn btn-secondary btn-sm refresh-btn" onclick="loadDevices()">🔄 刷新</button>
+                    </div>
+                    <div class="table-container">
+                        <div id="devicesLoading" class="loading">加载中...</div>
+                        <div id="devicesEmpty" class="empty-state" style="display:none;">暂无激活设备</div>
+                        <table class="data-table" id="devicesTable" style="display:none;">
+                            <thead>
+                                <tr>
+                                    <th>设备码</th>
+                                    <th>状态</th>
+                                    <th>天数</th>
+                                    <th>激活时间</th>
+                                    <th>到期时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- 扫码激活 -->
-            <div class="card">
-                <h3><span class="icon">📷</span> Scan to Activate</h3>
-                <div id="reader"></div>
-                <button class="btn btn-secondary" id="startScanBtn" onclick="startScanner()">Start Camera</button>
-                <button class="btn btn-secondary" id="stopScanBtn" onclick="stopScanner()" style="display:none;">Stop Camera</button>
-                
-                <div class="scan-result" id="scanResult">
-                    <div>Device Code:</div>
-                    <div class="device-code" id="scannedDeviceCode"></div>
+            <div class="tab-content" id="tab-scan">
+                <div class="card">
+                    <h3>📷 扫码激活设备</h3>
+                    <div id="reader"></div>
+                    <button class="btn btn-secondary btn-full" id="startScanBtn" onclick="startScanner()">启动摄像头</button>
+                    <button class="btn btn-secondary btn-full" id="stopScanBtn" onclick="stopScanner()" style="display:none;">关闭摄像头</button>
                     
-                    <div style="margin-top:16px;">Select activation period:</div>
-                    <div class="days-selector">
-                        <div class="days-option" data-days="1" onclick="selectDays(this)">
-                            <div class="num">1</div>
-                            <div class="label">Day</div>
+                    <div class="scan-result" id="scanResult">
+                        <div>设备码：</div>
+                        <div class="device-code" id="scannedDeviceCode"></div>
+                        <div style="margin-top:16px;">选择激活时长：</div>
+                        <div class="days-selector" id="scanDaysSelector">
+                            <div class="days-option" data-days="1" onclick="selectScanDays(this)"><div class="num">1</div><div class="label">天</div></div>
+                            <div class="days-option" data-days="3" onclick="selectScanDays(this)"><div class="num">3</div><div class="label">天</div></div>
+                            <div class="days-option" data-days="7" onclick="selectScanDays(this)"><div class="num">7</div><div class="label">天</div></div>
+                            <div class="days-option selected" data-days="0" onclick="selectScanDays(this)"><div class="num">∞</div><div class="label">永久</div></div>
                         </div>
-                        <div class="days-option" data-days="3" onclick="selectDays(this)">
-                            <div class="num">3</div>
-                            <div class="label">Days</div>
-                        </div>
-                        <div class="days-option" data-days="7" onclick="selectDays(this)">
-                            <div class="num">7</div>
-                            <div class="label">Days</div>
-                        </div>
-                        <div class="days-option selected" data-days="0" onclick="selectDays(this)">
-                            <div class="num">∞</div>
-                            <div class="label">Permanent</div>
-                        </div>
+                        <button class="btn btn-primary btn-full" onclick="activateDevice()">立即激活</button>
                     </div>
-                    <button class="btn btn-primary" onclick="activateDevice()">Activate Device</button>
+                    
+                    <details class="manual-input">
+                        <summary>手动输入设备码</summary>
+                        <div class="input-row">
+                            <input type="text" id="manualDeviceCode" placeholder="输入设备码">
+                            <button class="btn btn-primary" onclick="useManualCode()">确定</button>
+                        </div>
+                    </details>
                 </div>
-                
-                <!-- 手动输入设备码 -->
-                <details class="manual-input">
-                    <summary>Manual input device code</summary>
-                    <div class="input-row">
-                        <input type="text" id="manualDeviceCode" placeholder="Enter device code">
-                        <button class="btn btn-primary" onclick="useManualCode()">Use</button>
-                    </div>
-                </details>
             </div>
             
             <!-- 生成激活码 -->
-            <div class="card">
-                <h3><span class="icon">🎫</span> Generate Activation Codes</h3>
-                <p style="color:#888;font-size:14px;margin-bottom:16px;">Generate codes that users can enter to activate</p>
-                
-                <div>Select activation period:</div>
-                <div class="days-selector" id="generateDaysSelector">
-                    <div class="days-option" data-days="1" onclick="selectGenerateDays(this)">
-                        <div class="num">1</div>
-                        <div class="label">Day</div>
+            <div class="tab-content" id="tab-codes">
+                <div class="card">
+                    <h3>🎫 批量生成激活码</h3>
+                    <p style="color:#888;font-size:14px;margin-bottom:16px;">生成激活码供用户输入激活</p>
+                    <div>选择激活时长：</div>
+                    <div class="days-selector" id="generateDaysSelector">
+                        <div class="days-option" data-days="1" onclick="selectGenerateDays(this)"><div class="num">1</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="3" onclick="selectGenerateDays(this)"><div class="num">3</div><div class="label">天</div></div>
+                        <div class="days-option" data-days="7" onclick="selectGenerateDays(this)"><div class="num">7</div><div class="label">天</div></div>
+                        <div class="days-option selected" data-days="0" onclick="selectGenerateDays(this)"><div class="num">∞</div><div class="label">永久</div></div>
                     </div>
-                    <div class="days-option" data-days="3" onclick="selectGenerateDays(this)">
-                        <div class="num">3</div>
-                        <div class="label">Days</div>
+                    <div class="count-input">
+                        <span>生成</span>
+                        <input type="number" id="codeCount" value="5" min="1" max="100">
+                        <span>个激活码</span>
                     </div>
-                    <div class="days-option" data-days="7" onclick="selectGenerateDays(this)">
-                        <div class="num">7</div>
-                        <div class="label">Days</div>
-                    </div>
-                    <div class="days-option selected" data-days="0" onclick="selectGenerateDays(this)">
-                        <div class="num">∞</div>
-                        <div class="label">Permanent</div>
-                    </div>
+                    <button class="btn btn-primary" onclick="generateCodes()">生成激活码</button>
+                    <div class="codes-output" id="codesOutput"></div>
+                    <button class="btn btn-secondary btn-full" id="copyCodesBtn" style="display:none;margin-top:10px;" onclick="copyCodes()">复制全部激活码</button>
                 </div>
-                
-                <div class="count-input">
-                    <span>Generate</span>
-                    <input type="number" id="codeCount" value="5" min="1" max="100">
-                    <span>codes</span>
-                </div>
-                
-                <button class="btn btn-primary" onclick="generateCodes()">Generate Codes</button>
-                
-                <div class="codes-output" id="codesOutput"></div>
-                <button class="btn btn-secondary" id="copyCodesBtn" style="display:none;" onclick="copyCodes()">Copy All Codes</button>
             </div>
         </div>
     </div>
-    
     <div class="toast" id="toast"></div>
-</body>
-</html>
 
 <script>
     const API_BASE = 'https://ai-activation-amuunhyabz.ap-southeast-1.fcapp.run';
@@ -458,7 +254,7 @@
     
     let html5QrCode = null;
     let isScanning = false;
-    let selectedDays = 0; // 0 = permanent
+    let scanSelectedDays = 0;
     let generateSelectedDays = 0;
     let scannedDevice = null;
     let generatedCodes = [];
@@ -470,9 +266,10 @@
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainPanel').style.display = 'block';
             localStorage.setItem('ai_admin_logged', 'true');
-            showToast('Login successful', 'success');
+            showToast('登录成功', 'success');
+            loadDevices();
         } else {
-            showToast('Invalid password', 'error');
+            showToast('密码错误', 'error');
         }
     }
     
@@ -490,6 +287,99 @@
         if (localStorage.getItem('ai_admin_logged') === 'true') {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainPanel').style.display = 'block';
+            loadDevices();
+        }
+    }
+    
+    // 切换标签
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+        if (tabName === 'devices') loadDevices();
+    }
+    
+    // 加载设备列表
+    async function loadDevices() {
+        document.getElementById('devicesLoading').style.display = 'block';
+        document.getElementById('devicesEmpty').style.display = 'none';
+        document.getElementById('devicesTable').style.display = 'none';
+        
+        try {
+            const response = await fetch(`${API_BASE}/list-devices`, {
+                headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+            });
+            const data = await response.json();
+            
+            document.getElementById('devicesLoading').style.display = 'none';
+            
+            if (data.success && data.devices && data.devices.length > 0) {
+                document.getElementById('devicesTable').style.display = 'table';
+                const tbody = document.getElementById('devicesBody');
+                tbody.innerHTML = data.devices.map(d => {
+                    const activatedAt = d.activated_at ? new Date(d.activated_at).toLocaleString('zh-CN') : '-';
+                    let expireStr = '永久';
+                    let statusClass = 'status-permanent';
+                    let statusText = '永久';
+                    
+                    if (d.expire_time > 0) {
+                        expireStr = new Date(d.expire_time).toLocaleString('zh-CN');
+                        if (d.is_expired) {
+                            statusClass = 'status-expired';
+                            statusText = '已过期';
+                        } else {
+                            statusClass = 'status-active';
+                            statusText = '有效';
+                        }
+                    }
+                    
+                    const daysText = d.days === 0 ? '永久' : d.days + '天';
+                    
+                    return `<tr>
+                        <td class="device-code-cell" title="${d.device_code}">${d.device_code.substring(0,12)}...</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${daysText}</td>
+                        <td>${activatedAt}</td>
+                        <td>${expireStr}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-danger btn-sm" onclick="deleteDevice('${d.device_code}')">删除</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } else {
+                document.getElementById('devicesEmpty').style.display = 'block';
+            }
+        } catch (err) {
+            document.getElementById('devicesLoading').style.display = 'none';
+            document.getElementById('devicesEmpty').style.display = 'block';
+            showToast('加载失败: ' + err.message, 'error');
+        }
+    }
+    
+    // 删除设备
+    async function deleteDevice(deviceCode) {
+        if (!confirm('确定要删除该设备的激活记录吗？')) return;
+        
+        try {
+            const response = await fetch(`${API_BASE}/delete-device`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ADMIN_TOKEN}`
+                },
+                body: JSON.stringify({ device_code: deviceCode })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('删除成功', 'success');
+                loadDevices();
+            } else {
+                showToast(data.error || '删除失败', 'error');
+            }
+        } catch (err) {
+            showToast('网络错误: ' + err.message, 'error');
         }
     }
     
@@ -499,22 +389,17 @@
             html5QrCode = new Html5Qrcode("reader");
         }
         
-        const config = { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 }
-        };
-        
         html5QrCode.start(
             { facingMode: "environment" },
-            config,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
             onScanSuccess,
-            onScanError
+            () => {}
         ).then(() => {
             isScanning = true;
             document.getElementById('startScanBtn').style.display = 'none';
             document.getElementById('stopScanBtn').style.display = 'block';
         }).catch(err => {
-            showToast('Camera error: ' + err, 'error');
+            showToast('摄像头错误: ' + err, 'error');
         });
     }
     
@@ -525,30 +410,22 @@
                 isScanning = false;
                 document.getElementById('startScanBtn').style.display = 'block';
                 document.getElementById('stopScanBtn').style.display = 'none';
-            }).catch(err => {
-                console.error('Stop error:', err);
-            });
+            }).catch(() => {});
         }
     }
     
     // 扫码成功
-    function onScanSuccess(decodedText, decodedResult) {
-        // 解析二维码内容: aiassistant://activate?device=xxx
+    function onScanSuccess(decodedText) {
         const match = decodedText.match(/device=([a-zA-Z0-9]+)/);
         if (match) {
             scannedDevice = match[1];
             document.getElementById('scannedDeviceCode').textContent = scannedDevice;
             document.getElementById('scanResult').classList.add('show');
             stopScanner();
-            showToast('Device code scanned', 'success');
+            showToast('扫码成功', 'success');
         } else {
-            showToast('Invalid QR code format', 'error');
+            showToast('无效的二维码格式', 'error');
         }
-    }
-    
-    // 扫码错误（忽略）
-    function onScanError(errorMessage) {
-        // 忽略扫码过程中的错误
     }
     
     // 手动输入设备码
@@ -558,26 +435,22 @@
             scannedDevice = code;
             document.getElementById('scannedDeviceCode').textContent = scannedDevice;
             document.getElementById('scanResult').classList.add('show');
-            showToast('Device code set', 'success');
+            showToast('设备码已设置', 'success');
         } else {
-            showToast('Please enter device code', 'error');
+            showToast('请输入设备码', 'error');
         }
     }
     
-    // 选择激活天数
-    function selectDays(el) {
-        document.querySelectorAll('.card:first-of-type .days-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
+    // 选择扫码激活天数
+    function selectScanDays(el) {
+        document.querySelectorAll('#scanDaysSelector .days-option').forEach(opt => opt.classList.remove('selected'));
         el.classList.add('selected');
-        selectedDays = parseInt(el.dataset.days);
+        scanSelectedDays = parseInt(el.dataset.days);
     }
     
     // 选择生成激活码天数
     function selectGenerateDays(el) {
-        document.querySelectorAll('#generateDaysSelector .days-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
+        document.querySelectorAll('#generateDaysSelector .days-option').forEach(opt => opt.classList.remove('selected'));
         el.classList.add('selected');
         generateSelectedDays = parseInt(el.dataset.days);
     }
@@ -585,7 +458,7 @@
     // 激活设备
     async function activateDevice() {
         if (!scannedDevice) {
-            showToast('No device code', 'error');
+            showToast('请先扫码或输入设备码', 'error');
             return;
         }
         
@@ -598,32 +471,29 @@
                 },
                 body: JSON.stringify({
                     device_code: scannedDevice,
-                    days: selectedDays
+                    days: scanSelectedDays
                 })
             });
-            
             const data = await response.json();
             
             if (data.success) {
-                const daysText = selectedDays === 0 ? 'Permanent' : selectedDays + ' days';
-                showToast(`Device activated: ${daysText}`, 'success');
-                // 重置
+                const daysText = scanSelectedDays === 0 ? '永久' : scanSelectedDays + '天';
+                showToast(`激活成功: ${daysText}`, 'success');
                 document.getElementById('scanResult').classList.remove('show');
                 scannedDevice = null;
             } else {
-                showToast(data.error || 'Activation failed', 'error');
+                showToast(data.error || '激活失败', 'error');
             }
         } catch (err) {
-            showToast('Network error: ' + err.message, 'error');
+            showToast('网络错误: ' + err.message, 'error');
         }
     }
     
     // 生成激活码
     async function generateCodes() {
         const count = parseInt(document.getElementById('codeCount').value) || 5;
-        
         if (count < 1 || count > 100) {
-            showToast('Count must be 1-100', 'error');
+            showToast('数量必须在1-100之间', 'error');
             return;
         }
         
@@ -639,7 +509,6 @@
                     count: count
                 })
             });
-            
             const data = await response.json();
             
             if (data.success && data.codes) {
@@ -648,12 +517,12 @@
                 output.innerHTML = data.codes.map(code => `<code>${code}</code>`).join('');
                 output.classList.add('show');
                 document.getElementById('copyCodesBtn').style.display = 'block';
-                showToast(`Generated ${data.codes.length} codes`, 'success');
+                showToast(`已生成 ${data.codes.length} 个激活码`, 'success');
             } else {
-                showToast(data.error || 'Generation failed', 'error');
+                showToast(data.error || '生成失败', 'error');
             }
         } catch (err) {
-            showToast('Network error: ' + err.message, 'error');
+            showToast('网络错误: ' + err.message, 'error');
         }
     }
     
@@ -662,37 +531,34 @@
         if (generatedCodes.length > 0) {
             const text = generatedCodes.join('\n');
             navigator.clipboard.writeText(text).then(() => {
-                showToast('Codes copied to clipboard', 'success');
+                showToast('已复制到剪贴板', 'success');
             }).catch(() => {
-                // 降级方案
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToast('Codes copied', 'success');
+                showToast('已复制', 'success');
             });
         }
     }
     
-    // Toast 提示
+    // Toast提示
     function showToast(message, type) {
         const toast = document.getElementById('toast');
         toast.textContent = message;
         toast.className = 'toast ' + type + ' show';
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
+        setTimeout(() => toast.classList.remove('show'), 3000);
     }
     
     // 回车登录
     document.getElementById('adminPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            login();
-        }
+        if (e.key === 'Enter') login();
     });
     
-    // 页面加载时检查登录状态
+    // 页面加载
     checkLogin();
 </script>
+</body>
+</html>
