@@ -119,6 +119,7 @@
         .method-code { background: rgba(138,43,226,0.2); color: #ba8aff; }
         .method-scan { background: rgba(0,191,255,0.2); color: #00bfff; }
         .method-verify { background: rgba(255,165,0,0.2); color: #ffa500; }
+        .method-request { background: rgba(0,255,136,0.2); color: #00ff88; }
         .method-unknown { background: rgba(128,128,128,0.2); color: #999; }
         .method-other { background: rgba(128,128,128,0.2); color: #999; }
         .table-actions { display: flex; gap: 8px; }
@@ -173,8 +174,35 @@
             
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('devices')">📱 设备列表</div>
-                <div class="tab" onclick="switchTab('activate')">� 激活设备</div>
+                <div class="tab" onclick="switchTab('requests')">📝 激活申请</div>
+                <div class="tab" onclick="switchTab('activate')">✅ 激活设备</div>
                 <div class="tab" onclick="switchTab('codes')">🎫 生成激活码</div>
+            </div>
+            
+            <!-- 激活申请列表 -->
+            <div class="tab-content" id="tab-requests">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📝 激活申请列表</h3>
+                        <button class="btn btn-secondary btn-sm refresh-btn" onclick="loadRequests()">🔄 刷新</button>
+                    </div>
+                    <div class="table-container">
+                        <div id="requestsLoading" class="loading">加载中...</div>
+                        <div id="requestsEmpty" class="empty-state" style="display:none;">暂无申请</div>
+                        <table class="data-table" id="requestsTable" style="display:none;">
+                            <thead>
+                                <tr>
+                                    <th>设备码</th>
+                                    <th>备注</th>
+                                    <th>申请时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
             <!-- 设备列表 -->
@@ -320,6 +348,7 @@
         document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
         document.getElementById('tab-' + tabName).classList.add('active');
         if (tabName === 'devices') loadDevices();
+        if (tabName === 'requests') loadRequests();
         if (tabName !== 'activate') stopScanner();
     }
     
@@ -382,6 +411,10 @@
                             case 'verify':
                                 activationMethod = '验证码';
                                 methodClass = 'method-verify';
+                                break;
+                            case 'request':
+                                activationMethod = '申请';
+                                methodClass = 'method-request';
                                 break;
                             default:
                                 activationMethod = d.activation_method;
@@ -520,7 +553,7 @@
             showToast('请先扫码', 'error');
             return;
         }
-        await doActivate(scannedDevice, scanSelectedDays);
+        await doActivate(scannedDevice, scanSelectedDays, 'scan');
         document.getElementById('scanResult').classList.remove('show');
         scannedDevice = null;
     }
@@ -531,11 +564,11 @@
             showToast('请输入设备码', 'error');
             return;
         }
-        await doActivate(deviceCode, manualSelectedDays);
+        await doActivate(deviceCode, manualSelectedDays, 'verify');
         document.getElementById('manualDeviceCode').value = '';
     }
     
-    async function doActivate(deviceCode, days) {
+    async function doActivate(deviceCode, days, activationMethod = 'verify') {
         try {
             const response = await fetch(`${API_BASE}/activate`, {
                 method: 'POST',
@@ -543,7 +576,11 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${ADMIN_TOKEN}`
                 },
-                body: JSON.stringify({ device_code: deviceCode, days: days })
+                body: JSON.stringify({ 
+                    device_code: deviceCode, 
+                    days: days,
+                    activation_method: activationMethod
+                })
             });
             const data = await response.json();
             
@@ -552,6 +589,126 @@
                 showToast(`激活成功: ${daysText}`, 'success');
             } else {
                 showToast(data.error || '激活失败', 'error');
+            }
+        } catch (err) {
+            showToast('网络错误: ' + err.message, 'error');
+        }
+    }
+    
+    async function loadRequests() {
+        document.getElementById('requestsLoading').style.display = 'block';
+        document.getElementById('requestsEmpty').style.display = 'none';
+        document.getElementById('requestsTable').style.display = 'none';
+        
+        try {
+            const response = await fetch(`${API_BASE}/list-requests`, {
+                headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+            });
+            const data = await response.json();
+            
+            document.getElementById('requestsLoading').style.display = 'none';
+            
+            if (data.success && data.requests && data.requests.length > 0) {
+                document.getElementById('requestsTable').style.display = 'table';
+                const tbody = document.getElementById('requestsBody');
+                
+                // 按申请时间降序排序
+                const sortedRequests = data.requests.sort((a, b) => {
+                    return b.created_at - a.created_at;
+                });
+                
+                tbody.innerHTML = sortedRequests.map(r => {
+                    const createdAt = new Date(r.created_at).toLocaleString('zh-CN');
+                    const reason = r.reason || '-';
+                    
+                    let statusBadge = '';
+                    let actions = '';
+                    
+                    if (r.status === 'pending') {
+                        statusBadge = '<span class="status-badge" style="background:rgba(255,165,0,0.2);color:#ffa500;">待处理</span>';
+                        actions = `
+                            <button class="btn btn-primary btn-sm" onclick="approveRequest('${r.device_code}')">批准</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectRequest('${r.device_code}')">拒绝</button>
+                        `;
+                    } else if (r.status === 'approved') {
+                        statusBadge = '<span class="status-badge status-active">已批准</span>';
+                        const processedAt = r.processed_at ? new Date(r.processed_at).toLocaleString('zh-CN') : '-';
+                        actions = `<small style="color:#888;">${processedAt}</small>`;
+                    } else if (r.status === 'rejected') {
+                        statusBadge = '<span class="status-badge status-expired">已拒绝</span>';
+                        const processedAt = r.processed_at ? new Date(r.processed_at).toLocaleString('zh-CN') : '-';
+                        actions = `<small style="color:#888;">${processedAt}</small>`;
+                    }
+                    
+                    return `<tr>
+                        <td class="device-code-cell">${r.device_code}</td>
+                        <td>${reason}</td>
+                        <td>${createdAt}</td>
+                        <td>${statusBadge}</td>
+                        <td class="table-actions">${actions}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                document.getElementById('requestsEmpty').style.display = 'block';
+            }
+        } catch (err) {
+            document.getElementById('requestsLoading').style.display = 'none';
+            document.getElementById('requestsEmpty').style.display = 'block';
+            showToast('加载失败: ' + err.message, 'error');
+        }
+    }
+    
+    async function approveRequest(deviceCode) {
+        const days = prompt('请输入激活天数（输入 0 表示永久）:', '0');
+        if (days === null) return;
+        
+        const daysNum = parseInt(days);
+        if (isNaN(daysNum) || daysNum < 0) {
+            showToast('请输入有效的天数', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE}/approve-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ADMIN_TOKEN}`
+                },
+                body: JSON.stringify({ device_code: deviceCode, days: daysNum })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('已批准并激活设备', 'success');
+                loadRequests();
+            } else {
+                showToast(data.error || '操作失败', 'error');
+            }
+        } catch (err) {
+            showToast('网络错误: ' + err.message, 'error');
+        }
+    }
+    
+    async function rejectRequest(deviceCode) {
+        if (!confirm('确定要拒绝该申请吗？')) return;
+        
+        try {
+            const response = await fetch(`${API_BASE}/reject-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ADMIN_TOKEN}`
+                },
+                body: JSON.stringify({ device_code: deviceCode })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('已拒绝申请', 'success');
+                loadRequests();
+            } else {
+                showToast(data.error || '操作失败', 'error');
             }
         } catch (err) {
             showToast('网络错误: ' + err.message, 'error');
