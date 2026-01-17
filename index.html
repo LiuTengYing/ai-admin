@@ -115,6 +115,12 @@
         .status-active { background: rgba(0,255,136,0.2); color: #00ff88; }
         .status-expired { background: rgba(255,107,107,0.2); color: #ff6b6b; }
         .status-permanent { background: rgba(0,217,255,0.2); color: #00d9ff; }
+        .method-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .method-code { background: rgba(138,43,226,0.2); color: #ba8aff; }
+        .method-scan { background: rgba(0,191,255,0.2); color: #00bfff; }
+        .method-verify { background: rgba(255,165,0,0.2); color: #ffa500; }
+        .method-unknown { background: rgba(128,128,128,0.2); color: #999; }
+        .method-other { background: rgba(128,128,128,0.2); color: #999; }
         .table-actions { display: flex; gap: 8px; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
         .table-container { overflow-x: auto; }
@@ -187,6 +193,7 @@
                                     <th>设备码</th>
                                     <th>状态</th>
                                     <th>天数</th>
+                                    <th>激活方式</th>
                                     <th>激活时间</th>
                                     <th>到期时间</th>
                                     <th>操作</th>
@@ -332,7 +339,15 @@
             if (data.success && data.devices && data.devices.length > 0) {
                 document.getElementById('devicesTable').style.display = 'table';
                 const tbody = document.getElementById('devicesBody');
-                tbody.innerHTML = data.devices.map(d => {
+                
+                // 按激活时间降序排序（最新的在最上面）
+                const sortedDevices = data.devices.sort((a, b) => {
+                    const timeA = a.activated_at ? new Date(a.activated_at).getTime() : 0;
+                    const timeB = b.activated_at ? new Date(b.activated_at).getTime() : 0;
+                    return timeB - timeA; // 降序：新的在前
+                });
+                
+                tbody.innerHTML = sortedDevices.map(d => {
                     const activatedAt = d.activated_at ? new Date(d.activated_at).toLocaleString('zh-CN') : '-';
                     let expireStr = '永久';
                     let statusClass = 'status-permanent';
@@ -351,10 +366,34 @@
                     
                     const daysText = d.days === 0 ? '永久' : d.days + '天';
                     
+                    // 激活方式
+                    let activationMethod = '未知';
+                    let methodClass = 'method-unknown';
+                    if (d.activation_method) {
+                        switch(d.activation_method) {
+                            case 'code':
+                                activationMethod = '激活码';
+                                methodClass = 'method-code';
+                                break;
+                            case 'scan':
+                                activationMethod = '扫码';
+                                methodClass = 'method-scan';
+                                break;
+                            case 'verify':
+                                activationMethod = '验证码';
+                                methodClass = 'method-verify';
+                                break;
+                            default:
+                                activationMethod = d.activation_method;
+                                methodClass = 'method-other';
+                        }
+                    }
+                    
                     return `<tr>
                         <td class="device-code-cell">${d.device_code}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td>${daysText}</td>
+                        <td><span class="method-badge ${methodClass}">${activationMethod}</span></td>
                         <td>${activatedAt}</td>
                         <td>${expireStr}</td>
                         <td class="table-actions">
